@@ -1,0 +1,31 @@
+{
+  "name": "Mars Chat Bot",
+  "description": "A smart Telegram chatbot with auto-reply and emoji response features.",
+  "repository": "https://github.com/ravinishayar/marsChatBot",
+  "keywords": ["telegram", "bot", "python", "chatbot"],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "BOT_TOKEN": {
+      "description": "Telegram bot token from BotFather",
+      "required": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "Your OpenAI API key (if used)",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "addons": [],
+  "scripts": {
+    "postdeploy": "echo Deployment complete!"
+  }
+}
