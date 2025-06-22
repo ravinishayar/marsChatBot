@@ -38,3 +38,8 @@ echo "BOT_TOKEN=your_token_here" > .env
 
 # Run the bot
 python start.py
+
+## 📞 Contact
+
+**Developer**: [@Ravi Nishayar](https://t.me/ravinishayar54)  
+**For Support or Queries**: [Contact on Telegram]([https://t.me/](https://t.me/MARS_MACHAL_SUPPORT))
