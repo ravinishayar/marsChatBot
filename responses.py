@@ -11,12 +11,13 @@ conversations = {
     "hello": "नमस्ते! 😊",
     "hi": "नमस्ते! कैसे हो?",
     "kya tum bot ho": "हाँ, मैं एक बॉट हूँ। 🤖",
-    "tumhara naam kya hai": "Mera koi naam nhi hain.",
+    "tumhara naam kya hai": "Mera ChatbBot hain.",
     "good morning": "Good Morning Too Dear",
     "achha": "Ji haan",
     "kaha se ho": "apne ghar se hoon🤣",
     "sach me": "ha bhai sach me🙄",
     "tum kon ho": " Phle Tum btao🤔🤔",
+    "Mai Insan hu": "Mai Ak bot hu🤣",
     "mai bhi thik hu": "Fir to thik hai",
     "tum kaise ho": "मैं अच्छा हूँ, आप कैसे हो?",
     "main achha hu": "बहुत खुशी हुई सुनकर! 😊",
@@ -57,7 +58,7 @@ conversations = {
     "kya tum intelligent ho": "मुझे ऐसा ही सिखाया गया है 🧠",
     "tumhare jaise aur bhi hai": "हाँ, मेरे जैसे और बॉट्स भी होते हैं!",
     "tum boring ho": "ओह! कोशिश करता हूँ बेहतर बनने की 🤖",
-    "kya tumse dosti kar sakta ho": "हम पहले से ही दोस्त हैं 😊",
+    "kya tumse dosti kar sakta hu": "हम पहले से ही दोस्त हैं 😊",
     "tum kya soch rahe ho": "मैं सोच नहीं सकता, मैं बस चलता हूँ",
     "mujhe tum par bharosa hai": "धन्यवाद, मैं आपका साथ निभाऊँगा! 🤝",
     "mujhe maaf karo": "कोई बात नहीं, सब माफ़ किया!",
@@ -403,6 +404,12 @@ conversations = {
     "IPL ka full form kya hota hai":
     "IPL ka full form indian premier league hain",
     "ipl ka full form": "indian premier laegue hain",
+    "tumhe samjh nhi aata hai kya": "Are bhai thik se btao na😒😒",
+    "kya btau": "Abhi jo bol rhe the😒😒",
+    "kya bol rha tha": "Are mujhe kya pta yaar🙄",
+    "tumko kisne bnaya": "Ravi Nishayar ne bnaya hai😒😒",
+    "Koi BF hai kya": "Nhi yaar🤣🤣",
+    "Koi GF hai kya": "Nhi yaar🤣🤣",
 }
 
 emoji_responses = {
@@ -565,4 +572,4 @@ def get_reply(user_msg: str) -> str:
                                             if first_emoji else "")
 
     # ❌ No match found
-    return "माफ़ करें, मैं अभी इसे समझ नहीं पाया।"
+    return "🤔🤔🤔🤔kya bole"

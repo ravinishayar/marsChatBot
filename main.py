@@ -1,14 +1,9 @@
 import os
 import re
 from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    CallbackQueryHandler,
-    ContextTypes,
-    filters,
-)
+from telegram.ext import (ApplicationBuilder, CommandHandler, MessageHandler,
+                          CallbackQueryHandler, ContextTypes, filters,
+                          ChatMemberHandler)
 
 from buttons import get_start_buttons, handle_button_click
 from responses import get_reply
@@ -16,6 +11,7 @@ from start_handler import start
 from welcome import set_welcome_start, save_welcome_message, welcome_new_member
 from warnsystem import get_warn_handler
 from user_logger import forward_user_message  # ✅ User message logger
+from group_join_handler import welcome_on_add  # ✅ New group add handler
 
 # 🔐 Get bot token from environment variable
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -32,7 +28,7 @@ async def send_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def delete_links(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     text = message.text or ""
-    url_pattern = r"(https?://|t\.me/|wa\.me/|youtu\.be|youtube\.com)"
+    url_pattern = r"(https?://|t\\.me/|wa\\.me/|youtu\\.be|youtube\\.com)"
     if re.search(url_pattern, text, re.IGNORECASE):
         try:
             await message.delete()
@@ -92,6 +88,10 @@ def main():
     app.add_handler(
         MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS,
                        welcome_new_member))
+
+    # ✅ Bot added to group handler
+    app.add_handler(
+        ChatMemberHandler(welcome_on_add, ChatMemberHandler.MY_CHAT_MEMBER))
 
     # ✅ Universal message handler
     app.add_handler(

@@ -3,19 +3,18 @@ from telegram.ext import ContextTypes
 
 
 def get_start_buttons():
-    keyboard = [[
-        InlineKeyboardButton("➕ Add me to your group",
-                             url="https://t.me/reactpo56bot?startgroup=true")
-    ], [InlineKeyboardButton("💡 Help", callback_data='help')],
-                [
-                    InlineKeyboardButton(
-                        "👥 Support Group",
-                        url="https://t.me/MARS_MACHAL_SUPPORT")
-                ],
-                [
-                    InlineKeyboardButton("👑 Owner",
-                                         url="https://t.me/ravinishayar54")
-                ]]
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "➕ Add me to your group",
+                url="https://t.me/GroupHelpManage0bot?startgroup=true")
+        ], [InlineKeyboardButton("💡 Help", callback_data='help')],
+        [
+            InlineKeyboardButton("👥 Support Group",
+                                 url="https://t.me/MARS_MACHAL_SUPPORT")
+        ],
+        [InlineKeyboardButton("👑 Owner", url="https://t.me/ravinishayar54")]
+    ]
     return InlineKeyboardMarkup(keyboard)
 
 
