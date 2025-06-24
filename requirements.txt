@@ -5,3 +5,4 @@ google-generativeai>=0.4.0
 rapidfuzz
 indic-transliteration
 telegram
+django-buttons

@@ -1,6 +1,11 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from telegram import Update
 from telegram.ext import ContextTypes
-from buttons import get_start_buttons  # inline buttons system
+from core.inline_buttons import get_start_buttons  # inline buttons system
 
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
