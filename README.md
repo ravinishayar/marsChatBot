@@ -1,42 +1,90 @@
-# 🤖 Mars Chat Bot
+# 🤖 MarsGroupManager Bot
 
-Mars Chat Bot is a smart, customizable Telegram bot built with Python using `python-telegram-bot`.  
-It can auto-reply to Hindi text messages, respond to emoji-only messages, welcome users, and much more!
-
-## ✨ Features
-
-- ✅ Auto-reply to daily chat phrases (Hindi & Hinglish)
-- 😄 Emoji-only response support (e.g., 😢 → "Kya hua?")
-- 📥 Custom warning system
-- 📝 Welcome message for new members
-- 🔘 Inline buttons (start/help)
-- 📊 Modular and easily extendable
-- 🌐 Support for OpenAI / Gemini-based replies (optional)
-
-## 🚀 Deploy to Heroku
-
-Click below to deploy this bot to Heroku instantly:
-
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/ravinishayar/marsChatBot)
-
-> ⚠️ Make sure to set the required environment variable `BOT_TOKEN` from [BotFather](https://t.me/BotFather)
+**MarsGroupManager** is a multipurpose Telegram group management bot with powerful Hindi auto-replies, emoji responses, link protection, and warning system. Perfect for desi groups that need control and chat interaction in one bot.
 
 ---
 
-## 🧑‍💻 Installation (Manual)
+## 🚀 Features
+
+- 🤖 **Hindi Auto Replies** – Replies naturally to common Hindi chat phrases.
+- 😊 **Emoji Reactions** – Replies to emoji-only messages.
+- 🚫 **Link Deletion** – Automatically deletes any message containing a link (even from bots).
+- ⚠️ **Warning System** – Use `/warn` command; 2 warnings = auto-ban.
+- 🙋‍♂️ **Welcome Message** – Sends custom welcome messages with image and buttons.
+- 🤖 **Bot Join Greet** – Greets the group when the bot is added.
+
+---
+
+## 📦 Installation
+
+### 1. Clone the Bot
 
 ```bash
-# Clone the repository
-git clone https://github.com/ravinishayar/marsChatBot
+git clone https://github.com/ravinishayar/marsChatBot.git
 cd marsChatBot
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# Create .env file and add your bot token
-echo "BOT_TOKEN=your_token_here" > .env
+### 3. Set Environment Variables
 
-# Run the bot
-python start.py
+Make sure you add the following secrets:
 
+| Variable         | Description                                 |
+|------------------|---------------------------------------------|
+| `BOT_TOKEN`       | From @BotFather                             |
+| `LOGGER_GROUP_ID`| Group ID where logs will be sent (start with `-100`) |
+
+### 4. Run the Bot
+
+```bash
+python main.py
+```
+
+---
+
+## 📁 Project Structure
+
+```
+marsChatBot/
+├── core/
+│   ├── __init__.py                # Central import
+│   ├── start_handler.py           # /start command logic
+│   ├── group_join_handler.py      # Greets when bot or user joins
+│   ├── warnsystem.py              # /warn and auto-ban logic
+│   ├── responses.py               # Handles chat replies
+│   ├── link_protection.py         # Link delete system
+│   └── inline_buttons.py          # Button layout
+│
+├── main.py                        # Bot setup and handler registration
+├── requirements.txt               # All required Python packages
+├── welcome_message.txt            # Saved welcome message text
+├── warns.json                     # Stores warning counts
+├── README.md                      # You're here :)
+```
+
+---
+
+## ✨ Usage
+
+- `/start` — Shows bot info with image and buttons
+- `/setwelcome` — Sets a new welcome message
+- `/warn` — Warns a user (must be used in reply)
+- ✨ Chat normally — bot replies if your message matches
+
+---
+
+## 🧑 Author
+
+Made with ❤️ by [@ravinishayar](https://t.me/ravinishayar54)
+
+---
+
+## 📜 License
+
+MIT – Free to use, modify, share.
 
