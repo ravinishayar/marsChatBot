@@ -88,3 +88,29 @@ Made with ❤️ by [@ravinishayar](https://t.me/ravinishayar54)
 
 MIT – Free to use, modify, share.
 
+
+---
+
+## 🚀 Deploy the Bot
+
+You can deploy this bot instantly:
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/ravinishayar/marsChatBot)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_RAILWAY_TEMPLATE_ID)
+
+> 🔧 Replace `YOUR_RAILWAY_TEMPLATE_ID` with your actual template ID if available.
+
+---
+
+## 🧑‍💻 Maintainer
+
+- 👤 **Created by**: [@ravinishayar](https://github.com/ravinishayar)
+- 💬 Telegram: [t.me/ravinishayar](https://t.me/ravinishayar54)
+
+---
+
+## ⭐ Support
+
+If you like this bot, consider starring 🌟 the repository and sharing it with friends. Contributions and feedback are welcome!
+
