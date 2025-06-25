@@ -18,6 +18,7 @@ from core import (
     welcome_on_add,
     handle_chat_messages,
 )
+from core.help_command import help_command
 from core.warnsystem import get_warn_handler  # ⚠️ Warning system
 from core.link_protection import auto_delete_links  # 🔗 Link deletion
 from core.broadcast import broadcast_command  # 📢 Broadcast to users
@@ -31,6 +32,7 @@ def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     # ✅ Command Handlers
+    app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("setwelcome", set_welcome_start))
     app.add_handler(get_warn_handler())  # /warn

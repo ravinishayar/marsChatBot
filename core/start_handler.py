@@ -14,16 +14,16 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                "📌 Auto-reply, link protection, welcome, warning & more!\n\n"
                "👇 मुझे अपने ग्रुप में जोड़ें और कमाल देखें:")
 
-    # ✅ 1. Broadcast list में user को save करें
+    # ✅ Save user or group ID for broadcast
     save_user(update.effective_chat.id)
 
-    # ✅ 2. फोटो + caption + बटन भेजें
+    # ✅ Send image, caption and inline buttons
     await update.message.reply_photo(photo=image_url,
                                      caption=caption,
                                      reply_markup=get_start_buttons(),
                                      parse_mode="HTML")
 
-    # ✅ 3. LOGGER_GROUP_ID में log भेजें (अगर सेट है)
+    # ✅ Log to LOGGER_GROUP_ID if available
     user = update.effective_user
     if LOGGER_GROUP_ID:
         log_msg = (f"🚀 <b>New /start</b>\n"
