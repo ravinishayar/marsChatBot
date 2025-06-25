@@ -38,7 +38,7 @@ Make sure you add the following secrets:
 |------------------|---------------------------------------------|
 | `BOT_TOKEN`       | From @BotFather                             |
 | `LOGGER_GROUP_ID`| Group ID where logs will be sent (start with `-100`) |
-
+| `OWNER_ID`       | your telegram account id |
 ### 4. Run the Bot
 
 ```bash
