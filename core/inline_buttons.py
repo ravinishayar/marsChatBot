@@ -7,7 +7,7 @@ def get_start_buttons():
                 [
                     InlineKeyboardButton(
                         "➕ Add me to Group",
-                        url="https://t.me/@ChatManageHelpbot?startgroup=true")
+                        url="https://t.me/ChatManageHelpbot?startgroup=true")
                 ]]
     return InlineKeyboardMarkup(keyboard)
 
