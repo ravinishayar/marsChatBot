@@ -6,3 +6,4 @@ rapidfuzz
 indic-transliteration
 telegram
 django-buttons
+python-telegram-bot==20.6
