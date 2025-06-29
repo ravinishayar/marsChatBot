@@ -17,7 +17,7 @@ from core import (
     welcome_new_member,
     welcome_on_add,
 )
-
+from core.purge_handler import purge_messages
 from core.help_command import help_command
 from core.inline_buttons import handle_button_click  # ✅ Inline help callback handler
 from core.warnsystem import get_warn_handler  # ⚠️ Warning system
@@ -35,6 +35,7 @@ def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     # ✅ Command Handlers
+    app.add_handler(CommandHandler("purge", purge_messages))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))  # Inline help entry
     app.add_handler(CommandHandler("setwelcome", set_welcome_start))
