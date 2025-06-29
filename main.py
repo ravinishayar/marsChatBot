@@ -18,11 +18,13 @@ from core import (
     welcome_on_add,
     handle_chat_messages,
 )
+
 from core.help_command import help_command
 from core.warnsystem import get_warn_handler  # ⚠️ Warning system
 from core.link_protection import auto_delete_links  # 🔗 Link deletion
 from core.broadcast import broadcast_command  # 📢 Broadcast to users
 from core.group_broadcast import broadcast_groups, get_group_broadcast_handler  # 📢 Broadcast to groups
+from core.ban_handler import ban_user, unban_user  # ✅ /ban & /unban import
 
 # 🔐 Bot token
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -38,6 +40,8 @@ def main():
     app.add_handler(get_warn_handler())  # /warn
     app.add_handler(CommandHandler("broadcast", broadcast_command))  # Users
     app.add_handler(get_group_broadcast_handler())  # Groups
+    app.add_handler(CommandHandler("ban", ban_user))  # ✅ /ban command
+    app.add_handler(CommandHandler("unban", unban_user))  # ✅ /unban command
 
     # 🔘 Inline Button Callback
     app.add_handler(CallbackQueryHandler(handle_button_click))
