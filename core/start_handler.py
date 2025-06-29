@@ -2,10 +2,10 @@ import os
 from telegram import Update
 from telegram.ext import ContextTypes
 from core.inline_buttons import get_start_buttons
-from core.broadcast_utils import save_user  # ✅ Make sure this exists
+from core.broadcast_utils import save_user
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-LOGGER_GROUP_ID = os.getenv("LOGGER_GROUP_ID")  # Add this in Secrets
+LOGGER_GROUP_ID = os.getenv("LOGGER_GROUP_ID")
 
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -17,11 +17,15 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ✅ Save user or group ID for broadcast
     save_user(update.effective_chat.id)
 
-    # ✅ Send image, caption and inline buttons
+    # ✅ Send image + caption first
     await update.message.reply_photo(photo=image_url,
                                      caption=caption,
-                                     reply_markup=get_start_buttons(),
                                      parse_mode="HTML")
+
+    # ✅ Send inline button text message separately
+    await update.message.reply_text("👇 नीचे दिए बटन से सिस्टम explore करें:",
+                                    reply_markup=get_start_buttons(),
+                                    parse_mode="HTML")
 
     # ✅ Log to LOGGER_GROUP_ID if available
     user = update.effective_user
