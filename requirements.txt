@@ -8,3 +8,5 @@ django-buttons
 python-telegram-bot==20.6
 aiohttp
 pymongo
+apscheduler
+nest-asyncio
