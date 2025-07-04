@@ -2,6 +2,7 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
+from telegram.error import Conflict
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -106,7 +107,11 @@ async def run_bot():
         MessageHandler(filters.TEXT & ~filters.COMMAND, register_chat))
 
     print("🤖 Bot is running...")
-    await app.run_polling()
+    try:
+        await app.run_polling()
+    except Conflict:
+        print("⚠️ Conflict Detected: Another bot instance is running. Exiting...")
+        return
 
 
 if __name__ == "__main__":
