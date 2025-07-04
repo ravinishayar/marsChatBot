@@ -111,6 +111,7 @@ async def run_bot():
         await app.run_polling()
     except Conflict:
         print("⚠️ Conflict Detected: Another bot instance is running. Exiting...")
+        await app.shutdown()
         return
 
 
