@@ -29,6 +29,7 @@ from core import (
 )
 
 # 🧹 Import others
+from core.welcome_handler import send_welcome
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
 from core.broadcast import broadcast_command
@@ -71,6 +72,8 @@ async def main():
     scheduler.start()
 
     # Handlers
+    app.add_handler(
+        MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, send_welcome))
     app.add_handler(CommandHandler("info", info_command))
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))

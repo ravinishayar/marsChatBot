@@ -3,7 +3,7 @@ run = "python main.py"
 
 [nix]
 channel = "stable-24_05"
-packages = ["nano", "rapidfuzz-cpp", "taskflow"]
+packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "nano", "openjpeg", "rapidfuzz-cpp", "taskflow", "tcl", "tk", "zlib"]
 
 [unitTest]
 language = "python3"

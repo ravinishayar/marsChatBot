@@ -10,3 +10,4 @@ aiohttp
 pymongo
 apscheduler
 nest-asyncio
+pillow
