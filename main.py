@@ -59,7 +59,7 @@ async def track_media(update, context: ContextTypes.DEFAULT_TYPE):
             store_media_message(update.message)
 
 
-async def main():
+async def run_bot():
     print("🚀 Starting bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -112,4 +112,13 @@ async def main():
 if __name__ == "__main__":
     import nest_asyncio
     nest_asyncio.apply()
-    asyncio.run(main())
+
+    try:
+        asyncio.run(run_bot())
+    except RuntimeError as e:
+        if "Cannot close a running event loop" in str(e):
+            print("⚠️ Event loop already running, applying fix...")
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(run_bot())
+        else:
+            raise
