@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from core.broadcast_utils import save_user
+from core.broadcast_utils import save_user_if_not_exists  # ✅ Correct import
 
 
 # 👥 जब नया सदस्य group में आता है
@@ -18,9 +18,10 @@ async def welcome_new_member(update: Update,
             print(f"[❌] Error in user welcome: {e}")
 
     try:
-        save_user(update.effective_chat.id)
+        chat_id = update.effective_chat.id
+        save_user_if_not_exists(chat_id)  # ✅ Save group ID to broadcast list
     except Exception as e:
-        print(f"[❌] Error saving group: {e}")
+        print(f"[❌] Error saving group ID: {e}")
 
 
 # 🤖 जब बॉट को group में manually जोड़ा जाता है
@@ -33,7 +34,7 @@ async def welcome_on_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # ✅ 1. Subscribe Message with Button
         subscribe_keyboard = InlineKeyboardMarkup([[
             InlineKeyboardButton("📢 Subscribe Channel",
-                                 url="https://t.me/YourChannelUsername")
+                                 url="https://t.me/GroupHelpChatGuard")
         ]])
 
         try:
@@ -68,6 +69,7 @@ async def welcome_on_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(f"[❌] Error sending settings message: {e}")
 
         try:
-            save_user(chat_id)
+            save_user_if_not_exists(
+                chat_id)  # ✅ Save group ID to broadcast list
         except Exception as e:
             print(f"[❌] Error saving group ID: {e}")

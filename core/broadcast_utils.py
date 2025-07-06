@@ -1,28 +1,49 @@
+# core/broadcast_utils.py
 import json
 import os
 
-BROADCAST_LOG = "broadcast_users.json"
+# File paths
+USER_FILE = "broadcast_users.json"
+GROUP_FILE = "broadcast_groups.json"
 
 
-# Load users or groups from file
+# ✅ Load all user IDs
 def load_users():
-    if not os.path.exists(BROADCAST_LOG):
-        with open(BROADCAST_LOG, "w") as f:
+    if not os.path.exists(USER_FILE):
+        with open(USER_FILE, "w") as f:
             json.dump([], f)
-        return []
-
-    try:
-        with open(BROADCAST_LOG, "r") as f:
+    with open(USER_FILE, "r") as f:
+        try:
             return json.load(f)
-    except json.JSONDecodeError:
-        return []
+        except json.JSONDecodeError:
+            return []
 
 
-# Save a new user or group ID if not already present
-def save_user(chat_id: int):
+# ✅ Save user if not already saved
+def save_user_if_not_exists(user_id: int):
     users = load_users()
-
-    if chat_id not in users:
-        users.append(chat_id)
-        with open(BROADCAST_LOG, "w") as f:
+    if user_id not in users:
+        users.append(user_id)
+        with open(USER_FILE, "w") as f:
             json.dump(users, f, indent=2)
+
+
+# ✅ Load all group IDs
+def load_groups():
+    if not os.path.exists(GROUP_FILE):
+        with open(GROUP_FILE, "w") as f:
+            json.dump([], f)
+    with open(GROUP_FILE, "r") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
+
+
+# ✅ Save group if not already saved
+def save_group_if_not_exists(group_id: int):
+    groups = load_groups()
+    if group_id not in groups:
+        groups.append(group_id)
+        with open(GROUP_FILE, "w") as f:
+            json.dump(groups, f, indent=2)

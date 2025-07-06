@@ -28,12 +28,11 @@ from core import (
 )
 
 # 🧹 Import others
-from core.welcome import set_welcome_start, welcome_new_member  # ✅ Updated
-from core.purge_handler import purge_messages  # ✅ Added purge import
+from core.welcome import set_welcome_start, welcome_new_member
+from core.purge_handler import purge_messages
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
-from core.broadcast import broadcast_command
-from core.group_broadcast import get_group_broadcast_handler
+from core.broadcast import get_broadcast_handlers  # ✅ Unified Broadcast
 from core.ban_handler import ban_user, unban_user
 from core.commands.mute import mute_user
 from core.commands.unmute import unmute_user
@@ -45,12 +44,14 @@ from core.warnsystem import get_warn_handler
 
 
 async def register_chat(update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles normal text messages in groups and users."""
     if update.effective_chat.type in ["group", "supergroup"]:
         register_group(update.effective_chat.id)
     await handle_chat_messages(update, context)
 
 
 async def track_media(update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles saving of media messages for cleanup tasks."""
     if update.effective_chat.type in ["group", "supergroup"]:
         register_group(update.effective_chat.id)
         if update.message and (update.message.photo or update.message.video
@@ -65,15 +66,18 @@ async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
             "administrator", "creator"
     ]:
         group_id = update.effective_chat.id
-        print(f"✅ Bot is admin in group: {group_id}")
+        group_title = update.effective_chat.title
+        print(f"✅ Bot is admin in group: {group_title} ({group_id})")
         register_group(group_id)
+        from core.broadcast_utils import save_group
+        save_group(group_id, group_title)  # ✅ Save group ID and name
 
 
 async def main():
     print("🚀 Starting bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # 📆 Auto media deletion
+    # 📆 Auto media deletion every 2 mins
     scheduler = AsyncIOScheduler()
     scheduler.add_job(auto_delete_media_task,
                       "interval",
@@ -81,28 +85,27 @@ async def main():
                       args=[app.bot])
     scheduler.start()
 
-    # ✅ Handlers
+    # ✅ Command Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info_command))
-    app.add_handler(CommandHandler("broadcast", broadcast_command))
+    app.add_handlers(get_broadcast_handlers())  # ✅ Unified Broadcast Handler
     app.add_handler(CommandHandler("ban", ban_user))
     app.add_handler(CommandHandler("unban", unban_user))
     app.add_handler(CommandHandler("mute", mute_user))
     app.add_handler(CommandHandler("unmute", unmute_user))
     app.add_handler(CommandHandler("reload", reload_admins))
-    app.add_handler(CommandHandler("setwelcome", set_welcome_start))  # ✅ Added
-    app.add_handler(CommandHandler("purge",
-                                   purge_messages))  # ✅ Added purge command
+    app.add_handler(CommandHandler("setwelcome", set_welcome_start))
+    app.add_handler(CommandHandler("purge", purge_messages))
     app.add_handler(stats_handler)
-
     app.add_handler(get_warn_handler())
-    app.add_handler(get_group_broadcast_handler())
     app.add_handler(CallbackQueryHandler(handle_button_click))
     app.add_handler(MessageHandler(filters.ALL, track_user), group=-1)
+
+    # ✅ Event Handlers
     app.add_handler(
         MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS,
-                       welcome_new_member))  # ✅ Updated
+                       welcome_new_member))
     app.add_handler(
         ChatMemberHandler(welcome_on_add, ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(
