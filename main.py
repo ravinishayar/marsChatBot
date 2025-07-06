@@ -22,14 +22,14 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 from core import (
     start,
     handle_chat_messages,
-    welcome_new_member,
     welcome_on_add,
     help_command,
     handle_button_click,
 )
 
 # 🧹 Import others
-from core.welcome_handler import send_welcome
+from core.welcome import set_welcome_start, welcome_new_member  # ✅ Updated
+from core.purge_handler import purge_messages  # ✅ Added purge import
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
 from core.broadcast import broadcast_command
@@ -59,6 +59,16 @@ async def track_media(update, context: ContextTypes.DEFAULT_TYPE):
             store_media_message(update.message)
 
 
+async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
+    """Auto-register group when bot becomes admin."""
+    if update.my_chat_member and update.my_chat_member.new_chat_member.status in [
+            "administrator", "creator"
+    ]:
+        group_id = update.effective_chat.id
+        print(f"✅ Bot is admin in group: {group_id}")
+        register_group(group_id)
+
+
 async def main():
     print("🚀 Starting bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -71,18 +81,19 @@ async def main():
                       args=[app.bot])
     scheduler.start()
 
-    # Handlers
-    app.add_handler(
-        MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, send_welcome))
-    app.add_handler(CommandHandler("info", info_command))
+    # ✅ Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("info", info_command))
     app.add_handler(CommandHandler("broadcast", broadcast_command))
     app.add_handler(CommandHandler("ban", ban_user))
     app.add_handler(CommandHandler("unban", unban_user))
     app.add_handler(CommandHandler("mute", mute_user))
     app.add_handler(CommandHandler("unmute", unmute_user))
     app.add_handler(CommandHandler("reload", reload_admins))
+    app.add_handler(CommandHandler("setwelcome", set_welcome_start))  # ✅ Added
+    app.add_handler(CommandHandler("purge",
+                                   purge_messages))  # ✅ Added purge command
     app.add_handler(stats_handler)
 
     app.add_handler(get_warn_handler())
@@ -91,9 +102,12 @@ async def main():
     app.add_handler(MessageHandler(filters.ALL, track_user), group=-1)
     app.add_handler(
         MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS,
-                       welcome_new_member))
+                       welcome_new_member))  # ✅ Updated
     app.add_handler(
         ChatMemberHandler(welcome_on_add, ChatMemberHandler.MY_CHAT_MEMBER))
+    app.add_handler(
+        ChatMemberHandler(auto_register_on_admin,
+                          ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(
         MessageHandler(
             filters.Entity("url") | filters.Entity("text_link"),

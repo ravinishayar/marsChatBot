@@ -4,6 +4,7 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from telegram import Update, InputFile
 from telegram.ext import ContextTypes
+from core.cleaner import register_group  # ✅ import register_group
 
 # ✅ Custom Background Image URL
 WELCOME_IMAGE_URL = "https://i.ibb.co/93sbLjyt/20250704-160350.jpg"
@@ -11,6 +12,9 @@ WELCOME_IMAGE_URL = "https://i.ibb.co/93sbLjyt/20250704-160350.jpg"
 
 async def send_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send a welcome image with custom background and user DP."""
+    # ✅ Register group to ensure it's tracked
+    register_group(update.effective_chat.id)
+
     # ✅ Check if bot is admin in group
     bot_member = await context.bot.get_chat_member(update.effective_chat.id,
                                                    context.bot.id)
