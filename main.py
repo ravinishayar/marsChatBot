@@ -26,7 +26,6 @@ from core import (
     help_command,
     handle_button_click,
 )
-
 # 🧹 Import others
 from core.welcome import set_welcome_start, welcome_new_member
 from core.purge_handler import purge_messages
@@ -41,6 +40,9 @@ from core.link_protection import auto_delete_links
 from core.cleaner import auto_delete_media_task, register_group, store_media_message
 from core.user_tracker import track_user
 from core.warnsystem import get_warn_handler
+from core.group_join_handler import (change_language_callback,
+                                     set_language_callback
+                                     )  # ✅ Language callbacks
 
 
 async def register_chat(update, context: ContextTypes.DEFAULT_TYPE):
@@ -111,6 +113,11 @@ async def main():
     app.add_handler(
         ChatMemberHandler(auto_register_on_admin,
                           ChatMemberHandler.MY_CHAT_MEMBER))
+    app.add_handler(
+        CallbackQueryHandler(change_language_callback,
+                             pattern="^change_language"))
+    app.add_handler(
+        CallbackQueryHandler(set_language_callback, pattern="^set_lang"))
     app.add_handler(
         MessageHandler(
             filters.Entity("url") | filters.Entity("text_link"),

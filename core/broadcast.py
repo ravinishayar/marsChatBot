@@ -1,4 +1,3 @@
-# core/broadcast.py
 import json
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
@@ -20,7 +19,7 @@ async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success = 0
     failed = 0
 
-    for user_id in users:
+    for user_id in users.copy():  # 👈 iterate on copy
         try:
             await context.bot.send_message(chat_id=user_id,
                                            text=message_to_send)
@@ -28,6 +27,10 @@ async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"❌ Failed to send to {user_id}: {e}")
             failed += 1
+            # 🗑 Remove inactive user
+            users.remove(user_id)
+            with open("broadcast_users.json", "w") as f:
+                json.dump(users, f, indent=2)
 
     await update.message.reply_text(
         f"✅ User Broadcast completed.\n📬 Delivered: {success}\n❌ Failed: {failed}"
@@ -49,7 +52,7 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success = 0
     failed = 0
 
-    for group_id in groups:
+    for group_id in groups.copy():
         try:
             await context.bot.send_message(chat_id=group_id,
                                            text=message_to_send)
@@ -57,6 +60,10 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"❌ Failed to send to {group_id}: {e}")
             failed += 1
+            # 🗑 Remove inactive group
+            groups.remove(group_id)
+            with open("broadcast_groups.json", "w") as f:
+                json.dump(groups, f, indent=2)
 
     await update.message.reply_text(
         f"✅ Group Broadcast completed.\n📬 Delivered: {success}\n❌ Failed: {failed}"
