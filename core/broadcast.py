@@ -3,6 +3,9 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 from core.broadcast_utils import load_users, load_groups
 
+# 🔥 Your Logger Group ID (replace with your group ID)
+LOGGER_GROUP_ID = -1002533639590  # 👈 Replace this with your logger group ID
+
 
 # ✅ Broadcast to all users
 async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -19,7 +22,7 @@ async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success = 0
     failed = 0
 
-    for user_id in users.copy():  # 👈 iterate on copy
+    for user_id in users.copy():
         try:
             await context.bot.send_message(chat_id=user_id,
                                            text=message_to_send)
@@ -27,7 +30,6 @@ async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             print(f"❌ Failed to send to {user_id}: {e}")
             failed += 1
-            # 🗑 Remove inactive user
             users.remove(user_id)
             with open("broadcast_users.json", "w") as f:
                 json.dump(users, f, indent=2)
@@ -51,6 +53,7 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     groups = load_groups()
     success = 0
     failed = 0
+    failed_groups_info = []
 
     for group_id in groups.copy():
         try:
@@ -65,9 +68,35 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open("broadcast_groups.json", "w") as f:
                 json.dump(groups, f, indent=2)
 
+            try:
+                # 👇 Try to fetch group info
+                chat = await context.bot.get_chat(group_id)
+                group_name = chat.title or "No Title"
+                group_username = f"@{chat.username}" if chat.username else "No Username"
+            except Exception as fetch_error:
+                group_name = "Unknown"
+                group_username = "Unknown"
+
+            failed_groups_info.append(
+                f"📛 {group_name}\n🆔 {group_id}\n🔗 {group_username}")
+
     await update.message.reply_text(
         f"✅ Group Broadcast completed.\n📬 Delivered: {success}\n❌ Failed: {failed}"
     )
+
+    # ✅ Send failed group list to logger group
+    if failed_groups_info:
+        failed_message = "⚠️ *Failed to send broadcast to these groups:*\n\n" + "\n\n".join(
+            failed_groups_info)
+        try:
+            await context.bot.send_message(chat_id=LOGGER_GROUP_ID,
+                                           text=failed_message,
+                                           parse_mode="Markdown",
+                                           disable_web_page_preview=True)
+        except Exception as logger_error:
+            print(
+                f"❌ Failed to send failed groups info to logger: {logger_error}"
+            )
 
 
 # ✅ Return Handlers for main.py
