@@ -11,11 +11,11 @@ from telegram.ext import (
 )
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# 🔐 Load environment variables
+# 🔐 Load .env variables
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Import core features
+# ✅ Import core handlers
 from core import (
     start,
     handle_chat_messages,
@@ -68,17 +68,21 @@ async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
         save_group(group_id, group_title)
 
 
-async def run_bot():
-    print("🚀 Starting bot...")
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-
-    # 📆 Auto media deletion every 2 mins
+async def on_startup(app):
+    """Runs when the bot starts."""
+    print("📆 Starting scheduler...")
     scheduler = AsyncIOScheduler()
     scheduler.add_job(auto_delete_media_task,
                       "interval",
                       minutes=2,
                       args=[app.bot])
     scheduler.start()
+    print("✅ Scheduler started")
+
+
+def main():
+    print("🚀 Starting bot...")
+    app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
     # ✅ Command Handlers
     app.add_handler(CommandHandler("start", start))
@@ -118,13 +122,8 @@ async def run_bot():
         MessageHandler(filters.TEXT & ~filters.COMMAND, register_chat))
 
     print("🤖 Bot is running...")
-    await app.run_polling()
+    app.run_polling()
 
 
 if __name__ == "__main__":
-    import asyncio
-    try:
-        asyncio.get_event_loop().create_task(run_bot())
-        asyncio.get_event_loop().run_forever()
-    except (KeyboardInterrupt, SystemExit):
-        print("❌ Bot stopped.")
+    main()
