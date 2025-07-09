@@ -26,12 +26,11 @@ from core import (
     help_command,
     handle_button_click,
 )
-# 🧹 Import others
 from core.welcome import set_welcome_start, welcome_new_member
 from core.purge_handler import purge_messages
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
-from core.broadcast import get_broadcast_handlers  # ✅ Unified Broadcast
+from core.broadcast import get_broadcast_handlers
 from core.ban_handler import ban_user, unban_user
 from core.commands.mute import mute_user
 from core.commands.unmute import unmute_user
@@ -40,9 +39,6 @@ from core.link_protection import auto_delete_links
 from core.cleaner import auto_delete_media_task, register_group, store_media_message
 from core.user_tracker import track_user
 from core.warnsystem import get_warn_handler
-from core.group_join_handler import (change_language_callback,
-                                     set_language_callback
-                                     )  # ✅ Language callbacks
 
 
 async def register_chat(update, context: ContextTypes.DEFAULT_TYPE):
@@ -72,7 +68,7 @@ async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
         print(f"✅ Bot is admin in group: {group_title} ({group_id})")
         register_group(group_id)
         from core.broadcast_utils import save_group
-        save_group(group_id, group_title)  # ✅ Save group ID and name
+        save_group(group_id, group_title)
 
 
 async def main():
@@ -91,7 +87,7 @@ async def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info_command))
-    app.add_handlers(get_broadcast_handlers())  # ✅ Unified Broadcast Handler
+    app.add_handlers(get_broadcast_handlers())
     app.add_handler(CommandHandler("ban", ban_user))
     app.add_handler(CommandHandler("unban", unban_user))
     app.add_handler(CommandHandler("mute", mute_user))
@@ -114,11 +110,6 @@ async def main():
         ChatMemberHandler(auto_register_on_admin,
                           ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(
-        CallbackQueryHandler(change_language_callback,
-                             pattern="^change_language"))
-    app.add_handler(
-        CallbackQueryHandler(set_language_callback, pattern="^set_lang"))
-    app.add_handler(
         MessageHandler(
             filters.Entity("url") | filters.Entity("text_link"),
             auto_delete_links))
@@ -134,6 +125,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    import nest_asyncio
-    nest_asyncio.apply()
-    asyncio.run(main())
+    try:
+        asyncio.get_event_loop().run_until_complete(main())
+    except RuntimeError as e:
+        if str(e) != "This event loop is already running":
+            raise
