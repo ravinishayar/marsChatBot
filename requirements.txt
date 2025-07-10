@@ -11,3 +11,5 @@ pymongo
 apscheduler
 nest-asyncio
 pillow
+pyrogram==2.0.106
+tgcrypto
