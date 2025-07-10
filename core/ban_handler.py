@@ -1,13 +1,17 @@
 from telegram import Update, ChatMember
 from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 from telegram.error import BadRequest
 from pymongo import MongoClient
+from core.pyro_client import pyro_client
 import os
 
-# ✅ MongoDB Setup (MONGO_DB_URI used)
+# ✅ MongoDB Setup
 client = MongoClient(os.getenv("MONGO_DB_URI"))
 db = client["bot"]
 users = db["users"]
+
+OWNER_ID = int(os.getenv("OWNER_ID", "123456789"))
 
 
 # ✅ BAN USER
@@ -42,28 +46,42 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             if arg.startswith("@"):
                 username = arg[1:]
+
+                # 🟢 Try to find in MongoDB first
                 user_data = users.find_one({"username": username})
                 if user_data:
                     target_user_id = user_data["user_id"]
+                else:
+                    # 🔥 Try to fetch from Telegram using Pyrogram
+                    async with pyro_client:
+                        try:
+                            user_obj = await pyro_client.get_users(username)
+                            target_user_id = user_obj.id
+                        except Exception as e:
+                            await update.message.reply_text(
+                                f"⚠️ Username `{username}` नहीं मिला।")
+                            return
+
+                # 🚨 Ban user
+                try:
                     await bot.ban_chat_member(chat.id, target_user_id)
                     await update.message.reply_text(
-                        f"@{username} को बैन कर दिया गया ✅ (लोकल DB से खोजा गया)।"
-                    )
+                        f"@{username} को बैन कर दिया गया ✅")
                     return
-                else:
+                except BadRequest as e:
                     await update.message.reply_text(
-                        "⚠️ यूज़र नहीं मिला MongoDB में।")
+                        f"❌ बैन नहीं कर पाए: {e.message}")
                     return
+
             elif arg.isdigit():
                 target_user = (await bot.get_chat_member(chat.id,
                                                          int(arg))).user
             else:
                 await update.message.reply_text(
-                    "❌ यूज़र आईडी/username सही नहीं है।")
+                    "❌ यूज़र ID या username सही नहीं है।")
                 return
         except Exception as e:
-            await update.message.reply_text(
-                f"⚠️ Error: यूज़र नहीं मिला। {str(e)}")
+            await update.message.reply_text(f"⚠️ Error: {str(e)}")
             return
 
     if not target_user:
@@ -74,10 +92,11 @@ async def ban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await bot.ban_chat_member(chat.id, target_user.id)
         await update.message.reply_text(
-            f"{target_user.mention_html()} को बैन कर दिया गया है ✅",
-            parse_mode="HTML")
+            f"{target_user.mention_html()} को बैन कर दिया गया ✅",
+            parse_mode=ParseMode.HTML,
+        )
     except BadRequest as e:
-        await update.message.reply_text(f"बैन नहीं कर पाए ❌: {e.message}")
+        await update.message.reply_text(f"❌ बैन नहीं कर पाए: {e.message}")
 
 
 # ✅ UNBAN USER
@@ -102,7 +121,7 @@ async def unban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     target_user = None
 
-    # ✅ Case 1: If replied
+    # ✅ Case 1: Reply-based
     if update.message.reply_to_message:
         target_user = update.message.reply_to_message.from_user
 
@@ -112,23 +131,39 @@ async def unban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             if arg.startswith("@"):
                 username = arg[1:]
+
+                # 🟢 Try MongoDB
                 user_data = users.find_one({"username": username})
                 if user_data:
                     target_user_id = user_data["user_id"]
+                else:
+                    # 🔥 Try Telegram API
+                    async with pyro_client:
+                        try:
+                            user_obj = await pyro_client.get_users(username)
+                            target_user_id = user_obj.id
+                        except Exception as e:
+                            await update.message.reply_text(
+                                f"⚠️ Username `{username}` नहीं मिला।")
+                            return
+
+                # 🚨 Unban user
+                try:
                     await bot.unban_chat_member(chat.id, target_user_id)
                     await update.message.reply_text(
-                        f"@{username} को अनबैन कर दिया गया ✅ (लोकल DB से)।")
+                        f"@{username} को अनबैन कर दिया गया ✅")
                     return
-                else:
+                except BadRequest as e:
                     await update.message.reply_text(
-                        "⚠️ यूज़र MongoDB में नहीं मिला।")
+                        f"❌ अनबैन नहीं कर पाए: {e.message}")
                     return
+
             elif arg.isdigit():
                 target_user = (await bot.get_chat_member(chat.id,
                                                          int(arg))).user
             else:
                 await update.message.reply_text(
-                    "❌ यूज़र ID/username सही नहीं है।")
+                    "❌ यूज़र ID या username सही नहीं है।")
                 return
         except Exception as e:
             await update.message.reply_text(f"⚠️ Error: {str(e)}")
@@ -143,6 +178,7 @@ async def unban_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await bot.unban_chat_member(chat.id, target_user.id)
         await update.message.reply_text(
             f"{target_user.mention_html()} को अनबैन कर दिया गया ✅",
-            parse_mode="HTML")
+            parse_mode=ParseMode.HTML,
+        )
     except BadRequest as e:
-        await update.message.reply_text(f"अनबैन नहीं कर पाए ❌: {e.message}")
+        await update.message.reply_text(f"❌ अनबैन नहीं कर पाए: {e.message}")

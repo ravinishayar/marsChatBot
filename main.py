@@ -28,7 +28,7 @@ from core.purge_handler import purge_messages
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
 from core.broadcast import get_broadcast_handlers
-from core.ban_handler import ban_user, unban_user
+from core.ban_handler import ban_user, unban_user  # ✅ Ban System
 from core.commands.mute import mute_user
 from core.commands.unmute import unmute_user
 from core.commands.reload import reload_admins
@@ -89,8 +89,11 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info_command))
     app.add_handlers(get_broadcast_handlers())
+
+    # ✅ Ban System Handlers
     app.add_handler(CommandHandler("ban", ban_user))
     app.add_handler(CommandHandler("unban", unban_user))
+
     app.add_handler(CommandHandler("mute", mute_user))
     app.add_handler(CommandHandler("unmute", unmute_user))
     app.add_handler(CommandHandler("reload", reload_admins))
