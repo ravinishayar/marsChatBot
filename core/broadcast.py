@@ -1,10 +1,11 @@
 import json
+import asyncio
+from telegram.error import Forbidden, BadRequest, RetryAfter
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 from core.broadcast_utils import load_users, load_groups
 
-# 🔥 Your Logger Group ID (replace with your group ID)
-LOGGER_GROUP_ID = -1002533639590  # 👈 Replace this with your logger group ID
+LOGGER_GROUP_ID = -1002533639590  # 👈 Replace with your logger group ID
 
 
 # ✅ Broadcast to all users
@@ -27,12 +28,17 @@ async def user_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=user_id,
                                            text=message_to_send)
             success += 1
-        except Exception as e:
-            print(f"❌ Failed to send to {user_id}: {e}")
-            failed += 1
+        except Forbidden:
+            print(f"❌ User {user_id} blocked bot. Removing from DB.")
             users.remove(user_id)
             with open("broadcast_users.json", "w") as f:
                 json.dump(users, f, indent=2)
+            failed += 1
+        except Exception as e:
+            print(f"❌ Failed to send to {user_id}: {e}")
+            failed += 1
+
+        await asyncio.sleep(0.1)  # 🔥 Small delay to avoid flood limits
 
     await update.message.reply_text(
         f"✅ User Broadcast completed.\n📬 Delivered: {success}\n❌ Failed: {failed}"
@@ -60,25 +66,27 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=group_id,
                                            text=message_to_send)
             success += 1
-        except Exception as e:
-            print(f"❌ Failed to send to {group_id}: {e}")
-            failed += 1
-            # 🗑 Remove inactive group
+        except Forbidden:
+            print(f"❌ Bot removed from group {group_id}. Removing from DB.")
             groups.remove(group_id)
             with open("broadcast_groups.json", "w") as f:
                 json.dump(groups, f, indent=2)
+            failed += 1
+        except BadRequest as e:
+            print(f"❌ BadRequest for group {group_id}: {e}")
+            groups.remove(group_id)
+            with open("broadcast_groups.json", "w") as f:
+                json.dump(groups, f, indent=2)
+            failed += 1
+        except RetryAfter as e:
+            print(f"⏳ Flood wait: Sleeping for {e.retry_after} seconds")
+            await asyncio.sleep(e.retry_after)
+            continue
+        except Exception as e:
+            print(f"❌ Failed to send to group {group_id}: {e}")
+            failed += 1
 
-            try:
-                # 👇 Try to fetch group info
-                chat = await context.bot.get_chat(group_id)
-                group_name = chat.title or "No Title"
-                group_username = f"@{chat.username}" if chat.username else "No Username"
-            except Exception as fetch_error:
-                group_name = "Unknown"
-                group_username = "Unknown"
-
-            failed_groups_info.append(
-                f"📛 {group_name}\n🆔 {group_id}\n🔗 {group_username}")
+        await asyncio.sleep(0.1)  # 🔥 Small delay to avoid hitting rate limits
 
     await update.message.reply_text(
         f"✅ Group Broadcast completed.\n📬 Delivered: {success}\n❌ Failed: {failed}"
@@ -99,7 +107,6 @@ async def group_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
 
-# ✅ Return Handlers for main.py
 def get_broadcast_handlers():
     return [
         CommandHandler("broadcast", user_broadcast),

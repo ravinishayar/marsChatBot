@@ -21,21 +21,30 @@ with open(START_TIME_FILE, "r") as f:
 
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # 📊 Get MongoDB users count
     users = get_user_collection()
     total_users = users.count_documents({})
 
-    # 📬 Get active broadcast users & groups
+    # 🟢 Count active users (but don't delete inactive ones)
+    active_users = 0
+    for user in users.find({}):  # Sync loop
+        user_id = user["_id"]
+        try:
+            await context.bot.send_chat_action(user_id, "typing")
+            active_users += 1
+        except:
+            # ❌ User inactive (blocked or deleted), but skip deletion
+            pass
+
     active_broadcast_users = len(load_users())
     active_broadcast_groups = len(load_groups())
 
-    # ⏱ Calculate uptime
     uptime = time.time() - BOT_START_TIME
     uptime_str = format_uptime(uptime)
 
     await update.message.reply_html(
         f"<b>📊 Bot Stats:</b>\n\n"
         f"👥 <b>Total MongoDB Users:</b> <code>{total_users}</code>\n"
+        f"🟢 <b>Active Users:</b> <code>{active_users}</code>\n"
         f"📬 <b>Active Broadcast Users:</b> <code>{active_broadcast_users}</code>\n"
         f"👥 <b>Active Broadcast Groups:</b> <code>{active_broadcast_groups}</code>\n"
         f"⏱ <b>Uptime:</b> <code>{uptime_str}</code>\n"

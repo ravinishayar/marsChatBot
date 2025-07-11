@@ -28,7 +28,7 @@ from core.purge_handler import purge_messages
 from core.commands.info_command import info_command
 from core.stats_handler import stats_handler
 from core.broadcast import get_broadcast_handlers
-from core.ban_handler import ban_user, unban_user  # ✅ Ban System
+from core.ban_handler import ban_user, unban_user
 from core.commands.mute import mute_user
 from core.commands.unmute import unmute_user
 from core.commands.reload import reload_admins
@@ -36,6 +36,7 @@ from core.link_protection import auto_delete_links
 from core.cleaner import auto_delete_media_task, register_group, store_media_message
 from core.user_tracker import track_user
 from core.warnsystem import get_warn_handler
+from core.mention_handler import mention_all, cancel_mention  # ✅ Mention System
 
 
 async def register_chat(update, context: ContextTypes.DEFAULT_TYPE):
@@ -103,6 +104,10 @@ def main():
     app.add_handler(get_warn_handler())
     app.add_handler(CallbackQueryHandler(handle_button_click))
     app.add_handler(MessageHandler(filters.ALL, track_user), group=-1)
+
+    # ✅ Mention System Handlers
+    app.add_handler(CommandHandler("mentionall", mention_all))
+    app.add_handler(CommandHandler("cancel", cancel_mention))
 
     # ✅ Event Handlers
     app.add_handler(
