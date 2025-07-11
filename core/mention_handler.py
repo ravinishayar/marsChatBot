@@ -1,95 +1,59 @@
-from telegram import Update
-from telegram.ext import ContextTypes
-import asyncio
+from pyrogram.types import Message
+from pyrogram import Client
 
-# ✅ Track active mentions
-active_mentions = []
+# Store running mentions per chat
+mention_tasks = {}
 
-async def mention_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat = update.effective_chat
-    user = update.effective_user
 
-    # ✅ Check if command is in a group
-    if chat.type not in ["group", "supergroup"]:
-        await update.message.reply_text("❌ यह कमांड केवल ग्रुप में उपयोग की जा सकती है।")
+async def mention_all_pyro(client: Client, message: Message):
+    chat_id = message.chat.id
+    text = " ".join(message.command[1:]) or "Hey everyone 👋"
+
+    members = []
+    async for m in client.get_chat_members(chat_id):
+        if not m.user.is_bot:
+            members.append(m.user)
+
+    mentions = " ".join(
+        [f"[{user.first_name}](tg://user?id={user.id})" for user in members])
+
+    # Save task so it can be cancelled
+    sent = await client.send_message(chat_id,
+                                     f"{text}\n\n{mentions}",
+                                     disable_web_page_preview=True)
+    mention_tasks[chat_id] = sent
+
+
+async def mention_admins_pyro(client: Client, message: Message):
+    chat_id = message.chat.id
+    text = " ".join(message.command[1:]) or "Calling all admins 🔥"
+
+    admins = []
+    async for m in client.get_chat_members(chat_id, filter="administrators"):
+        if not m.user.is_bot:
+            admins.append(m.user)
+
+    if not admins:
+        await message.reply("No admins found in this group.")
         return
 
-    # ✅ Check if user is admin
-    member = await context.bot.get_chat_member(chat.id, user.id)
-    if member.status not in ["administrator", "creator"]:
-        await update.message.reply_text("❌ केवल एडमिन ही सभी को टैग कर सकते हैं।")
-        return
+    mentions = " ".join(
+        [f"[{user.first_name}](tg://user?id={user.id})" for user in admins])
 
-    # ✅ Determine message mode
-    if context.args and update.message.reply_to_message:
-        await update.message.reply_text("⚠️ एक बार में केवल एक आर्ग्यूमेंट दें।")
-        return
-    elif context.args:
-        mode = "text_on_cmd"
-        custom_text = " ".join(context.args)
-    elif update.message.reply_to_message:
-        mode = "text_on_reply"
-        reply_msg = update.message.reply_to_message
-        custom_text = None
+    sent = await client.send_message(chat_id,
+                                     f"{text}\n\n{mentions}",
+                                     disable_web_page_preview=True)
+    mention_tasks[chat_id] = sent
+
+
+async def cancel_mention_pyro(client: Client, message: Message):
+    chat_id = message.chat.id
+    if chat_id in mention_tasks:
+        try:
+            await client.delete_messages(chat_id, mention_tasks[chat_id].id)
+            await message.reply("✅ Mention cancelled.")
+            del mention_tasks[chat_id]
+        except Exception as e:
+            await message.reply(f"⚠️ Could not cancel mention: {e}")
     else:
-        await update.message.reply_text("⚠️ कृपया reply करें या `/mentionall <संदेश>` लिखें।")
-        return
-
-    # ✅ Start mention process
-    active_mentions.append(chat.id)
-    mentions = []
-    count = 0
-
-    try:
-        total_members = await context.bot.get_chat_member_count(chat.id)
-
-        for user_id in range(1, total_members + 1):
-            if chat.id not in active_mentions:
-                break  # Stop if /cancel is called
-
-            try:
-                member = await context.bot.get_chat_member(chat.id, user_id)
-            except:
-                continue  # Skip invalid users
-
-            if member.user.is_bot:
-                continue
-
-            count += 1
-            mentions.append(f"[{member.user.first_name}](tg://user?id={member.user.id})")
-
-            if count % 5 == 0:
-                text = " ".join(mentions)
-                if mode == "text_on_cmd":
-                    text += f"\n\n{custom_text}"
-                    await context.bot.send_message(chat.id, text, parse_mode="Markdown")
-                elif mode == "text_on_reply":
-                    await reply_msg.reply_text(text, parse_mode="Markdown")
-                mentions = []
-                await asyncio.sleep(2)
-
-        # ✅ Send any remaining mentions
-        if mentions:
-            text = " ".join(mentions)
-            if mode == "text_on_cmd":
-                text += f"\n\n{custom_text}"
-                await context.bot.send_message(chat.id, text, parse_mode="Markdown")
-            elif mode == "text_on_reply":
-                await reply_msg.reply_text(text, parse_mode="Markdown")
-
-    except Exception as e:
-        print(f"Error: {e}")
-
-    try:
-        active_mentions.remove(chat.id)
-    except:
-        pass
-
-
-async def cancel_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat = update.effective_chat
-    if chat.id in active_mentions:
-        active_mentions.remove(chat.id)
-        await update.message.reply_text("✅ टैगिंग प्रोसेस रोक दी गई।")
-    else:
-        await update.message.reply_text("ℹ️ इस समय कोई टैगिंग प्रोसेस नहीं चल रही।")
+        await message.reply("❌ No active mention to cancel.")
