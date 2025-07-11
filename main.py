@@ -19,7 +19,7 @@ from core.mention_handler import (
     mention_all_pyro,
     mention_admins_pyro,
     cancel_mention_pyro,
-)  # ✅ Pyrogram Mention System
+)
 
 # 🔐 Load .env variables
 load_dotenv()
@@ -88,7 +88,8 @@ async def on_startup(app):
     print("✅ Scheduler started")
 
 
-def run_pyrogram():
+def run_pyrogram_client():
+    """Run Pyrogram client in separate thread."""
     pyro_client = PyroClient(
         "mention_bot",
         api_id=API_ID,
@@ -114,11 +115,11 @@ def run_pyrogram():
     pyro_client.run()
 
 
-async def start_telegram_bot():
+async def run_telegram_bot():
     print("🚀 Starting Telegram Bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
-    # ✅ Command Handlers
+    # ✅ Add handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("info", info_command))
@@ -159,8 +160,11 @@ async def start_telegram_bot():
 
 if __name__ == "__main__":
     # Run Pyrogram in a separate thread
-    threading.Thread(target=run_pyrogram, daemon=True).start()
+    threading.Thread(target=run_pyrogram_client, daemon=True).start()
 
-    # Start Telegram Bot in main thread's event loop
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(start_telegram_bot())
+    # Run Telegram bot in main event loop
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(run_telegram_bot())
+    except RuntimeError as e:
+        print(f"🔥 Event loop error: {e}")
