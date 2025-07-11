@@ -114,7 +114,7 @@ def run_pyrogram():
     pyro_client.run()
 
 
-async def main():
+async def start_telegram_bot():
     print("🚀 Starting Telegram Bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
@@ -153,12 +153,14 @@ async def main():
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, register_chat))
 
-    # ✅ Start Pyrogram in a separate thread
-    threading.Thread(target=run_pyrogram, daemon=True).start()
-
     print("✅ Telegram Bot is running...")
     await app.run_polling()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Run Pyrogram in a separate thread
+    threading.Thread(target=run_pyrogram, daemon=True).start()
+
+    # Start Telegram Bot in main thread's event loop
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_telegram_bot())
