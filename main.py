@@ -1,5 +1,6 @@
 import os
 import asyncio
+import threading
 from dotenv import load_dotenv
 from telegram.ext import (
     ApplicationBuilder,
@@ -14,7 +15,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # 🛡 Pyrogram for mention system
 from pyrogram import Client as PyroClient, filters as pyro_filters
-from core.mention_handler import mention_all_pyro, cancel_mention_pyro  # ✅ Pyrogram Mention System
+from core.mention_handler import (
+    mention_all_pyro,
+    mention_admins_pyro,
+    cancel_mention_pyro,
+)  # ✅ Pyrogram Mention System
 
 # 🔐 Load .env variables
 load_dotenv()
@@ -46,14 +51,12 @@ from core.warnsystem import get_warn_handler
 
 
 async def register_chat(update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles normal text messages in groups and users."""
     if update.effective_chat.type in ["group", "supergroup"]:
         register_group(update.effective_chat.id)
     await handle_chat_messages(update, context)
 
 
 async def track_media(update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles saving of media messages for cleanup tasks."""
     if update.effective_chat.type in ["group", "supergroup"]:
         register_group(update.effective_chat.id)
         if update.message and (update.message.photo or update.message.video
@@ -63,7 +66,6 @@ async def track_media(update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
-    """Auto-register group when bot becomes admin."""
     if update.my_chat_member and update.my_chat_member.new_chat_member.status in [
             "administrator", "creator"
     ]:
@@ -76,7 +78,6 @@ async def auto_register_on_admin(update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def on_startup(app):
-    """Runs when the bot starts."""
     print("📆 Starting scheduler...")
     scheduler = AsyncIOScheduler()
     scheduler.add_job(auto_delete_media_task,
@@ -87,10 +88,33 @@ async def on_startup(app):
     print("✅ Scheduler started")
 
 
-async def main():
-    """Run both Pyrogram and Telegram bot in the same event loop."""
+def run_pyrogram():
+    pyro_client = PyroClient(
+        "mention_bot",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN,
+    )
 
-    # ✅ Start Telegram Bot
+    @pyro_client.on_message(
+        pyro_filters.command("mentionall") & pyro_filters.group)
+    async def handle_mention_all(client, message):
+        await mention_all_pyro(client, message)
+
+    @pyro_client.on_message(pyro_filters.command("admin") & pyro_filters.group)
+    async def handle_mention_admins(client, message):
+        await mention_admins_pyro(client, message)
+
+    @pyro_client.on_message(
+        pyro_filters.command("cancel") & pyro_filters.group)
+    async def handle_cancel_mention(client, message):
+        await cancel_mention_pyro(client, message)
+
+    print("✅ Pyrogram mention system running...")
+    pyro_client.run()
+
+
+async def main():
     print("🚀 Starting Telegram Bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
@@ -129,33 +153,11 @@ async def main():
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, register_chat))
 
-    await app.initialize()
-    await app.start()
+    # ✅ Start Pyrogram in a separate thread
+    threading.Thread(target=run_pyrogram, daemon=True).start()
+
     print("✅ Telegram Bot is running...")
-
-    # ✅ Start Pyrogram Bot
-    pyro_client = PyroClient(
-        "mention_bot",
-        api_id=API_ID,
-        api_hash=API_HASH,
-        bot_token=BOT_TOKEN,
-    )
-
-    @pyro_client.on_message(
-        pyro_filters.command("mentionall") & pyro_filters.group)
-    async def handle_mention_all(client, message):
-        await mention_all_pyro(client, message)
-
-    @pyro_client.on_message(
-        pyro_filters.command("cancel") & pyro_filters.group)
-    async def handle_cancel_mention(client, message):
-        await cancel_mention_pyro(client, message)
-
-    await pyro_client.start()
-    print("✅ Pyrogram mention system running...")
-
-    # Keep running until interrupted
-    await asyncio.Event().wait()
+    await app.run_polling()
 
 
 if __name__ == "__main__":
