@@ -1,6 +1,5 @@
 import os
 import asyncio
-import threading
 from dotenv import load_dotenv
 from telegram.ext import (
     ApplicationBuilder,
@@ -19,7 +18,7 @@ from core.mention_handler import (
     mention_all_pyro,
     mention_admins_pyro,
     cancel_mention_pyro,
-)
+)  # ✅ Pyrogram Mention System
 
 # 🔐 Load .env variables
 load_dotenv()
@@ -88,34 +87,8 @@ async def on_startup(app):
     print("✅ Scheduler started")
 
 
-def run_pyrogram_client():
-    """Run Pyrogram client in separate thread."""
-    pyro_client = PyroClient(
-        "mention_bot",
-        api_id=API_ID,
-        api_hash=API_HASH,
-        bot_token=BOT_TOKEN,
-    )
-
-    @pyro_client.on_message(
-        pyro_filters.command("mentionall") & pyro_filters.group)
-    async def handle_mention_all(client, message):
-        await mention_all_pyro(client, message)
-
-    @pyro_client.on_message(pyro_filters.command("admin") & pyro_filters.group)
-    async def handle_mention_admins(client, message):
-        await mention_admins_pyro(client, message)
-
-    @pyro_client.on_message(
-        pyro_filters.command("cancel") & pyro_filters.group)
-    async def handle_cancel_mention(client, message):
-        await cancel_mention_pyro(client, message)
-
-    print("✅ Pyrogram mention system running...")
-    pyro_client.run()
-
-
-async def run_telegram_bot():
+async def main():
+    # ✅ Create Telegram bot application
     print("🚀 Starting Telegram Bot...")
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(on_startup).build()
 
@@ -154,17 +127,34 @@ async def run_telegram_bot():
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, register_chat))
 
-    print("✅ Telegram Bot is running...")
-    await app.run_polling()
+    # ✅ Start Pyrogram client with shared loop
+    pyro_client = PyroClient(
+        "mention_bot",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN,
+    )
+
+    @pyro_client.on_message(pyro_filters.command("mentionall") & pyro_filters.group)
+    async def handle_mention_all(client, message):
+        await mention_all_pyro(client, message)
+
+    @pyro_client.on_message(pyro_filters.command("admin") & pyro_filters.group)
+    async def handle_mention_admins(client, message):
+        await mention_admins_pyro(client, message)
+
+    @pyro_client.on_message(pyro_filters.command("cancel") & pyro_filters.group)
+    async def handle_cancel_mention(client, message):
+        await cancel_mention_pyro(client, message)
+
+    print("✅ Pyrogram mention system running...")
+
+    # ✅ Run both bots together
+    await asyncio.gather(
+        pyro_client.start(),
+        app.run_polling()
+    )
 
 
 if __name__ == "__main__":
-    # Run Pyrogram in a separate thread
-    threading.Thread(target=run_pyrogram_client, daemon=True).start()
-
-    # Run Telegram bot in main event loop
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(run_telegram_bot())
-    except RuntimeError as e:
-        print(f"🔥 Event loop error: {e}")
+    asyncio.run(main())
